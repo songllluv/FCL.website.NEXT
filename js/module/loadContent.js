@@ -9,13 +9,23 @@ import { loadModule } from '/js/module/moduleLoader.js';
 export async function xf_getHtmlContent(url, onProgress) {
   console.log(`获取 HTML 内容：${url}`); // 打印日志
   const utils = await loadModule('/js/module/utils.js');
+
+  const response = await fetch(url, { method: 'HEAD' }); // 先发起 HEAD 请求获取内容长度
+
+  const contentLength = response.headers.get('Content-Length');
+  
+  const total = contentLength ? parseInt(contentLength, 10) : null; // 获取总长度
+
+  if  (onProgress && total !== null) { // 如果有进度回调且总长度已知，调用初始进度回调
+    onProgress(0, total); // 初始进度回调
+    console.log(`获取 HTML 内容：总长度：${total} 字节`);
+  }
   return fetch(url) // 使用 fetch API 发起网络请求获取指定 URL 的内容
     .then(response => {
       if (!response.ok) {
         throw new Error(`获取 HTML 内容：出错：HTTP：${response.status}`);
       }
       
-      const contentLength = response.headers.get('Content-Length');
       let loaded = 0;
       
       // 如果没有进度回调，直接返回文本
@@ -25,7 +35,6 @@ export async function xf_getHtmlContent(url, onProgress) {
       
       const reader = response.body.getReader();
       const chunks = [];
-      const total = contentLength ? parseInt(contentLength, 10) : null;
       
       return new Promise((resolve, reject) => {
         function read() {
@@ -93,7 +102,7 @@ export async function xf_loadHtmlContentFromUrl(url, container) {
     const loadingElement = document.createElement('div');
     loadingElement.className = 'xf-loading';
     loadingElement.id = 'xf-loading-progress';
-    loadingElement.innerHTML = '正在加载<br>?%<br>0 / ?';
+    loadingElement.innerHTML = '正在加载···';
     
     container.innerHTML = '';
     container.appendChild(loadingElement);
