@@ -55,6 +55,12 @@ jobs:
           git checkout main
           git pull origin main
 
+      - name: 输出帮助
+        run: |
+          html-minifier-terser --help
+          cleancss --help
+          terser --help
+
       - name: 在main分支上生成压缩文件
         run: |
           # 初始化dist目录
@@ -76,10 +82,6 @@ jobs:
                   html-minifier-terser \
                     --collapse-whitespace \
                     --remove-comments \
-                    --remove-optional-tags \
-                    --remove-redundant-attributes \
-                    --remove-empty-elements \
-                    --remove-empty-attributes \
                     --remove-script-type-attributes \
                     --remove-style-link-type-attributes \
                     -o "$output" "$file"
@@ -91,9 +93,6 @@ jobs:
                 *.js)
                   echo "🔧 压缩JS: $file"
                   terser "$file" \
-                    --compress "drop_console=false,drop_debugger=false" \
-                    --mangle "keep_fnames=true" \
-                    --comments false \
                     -o "$output"
                   ;;
                 *.json)
